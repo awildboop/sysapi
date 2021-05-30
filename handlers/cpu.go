@@ -3,8 +3,10 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/shirou/gopsutil/cpu"
+	"github.com/shirou/gopsutil/load"
 )
 
 type CPUInformation struct {
@@ -19,6 +21,9 @@ type CPUInformation struct {
 }
 
 type CPUStatistics struct {
+	CurrentUsagePercent float64
+	LoadAverage         load.AvgStat
+	LoadMisc            load.MiscStat
 }
 
 type CPUResponse struct {
@@ -57,5 +62,58 @@ func CPUUsage(res http.ResponseWriter, req *http.Request) {
 		Flags:     cpu0.Flags,
 	}
 
-	json.NewEncoder(res).Encode(information)
+	cpuPercent, err := cpu.Percent(time.Second, false)
+	if err != nil {
+		res.WriteHeader(500)
+		response := struct {
+			ResponseCode    int
+			ResponseMessage string
+		}{
+			ResponseCode:    http.StatusInternalServerError,
+			ResponseMessage: "Error while generating load statistics.",
+		}
+		json.NewEncoder(res).Encode(response)
+		return
+	}
+	loadAvg, err := load.Avg()
+	if err != nil {
+		res.WriteHeader(500)
+		response := struct {
+			ResponseCode    int
+			ResponseMessage string
+		}{
+			ResponseCode:    http.StatusInternalServerError,
+			ResponseMessage: "Error while generating load statistics.",
+		}
+		json.NewEncoder(res).Encode(response)
+		return
+	}
+	loadMisc, err := load.Misc()
+	if err != nil {
+		res.WriteHeader(500)
+		response := struct {
+			ResponseCode    int
+			ResponseMessage string
+		}{
+			ResponseCode:    http.StatusInternalServerError,
+			ResponseMessage: "Error while generating load statistics.",
+		}
+		json.NewEncoder(res).Encode(response)
+		return
+	}
+
+	statistics := &CPUStatistics{
+		CurrentUsagePercent: cpuPercent[0],
+		LoadAverage:         *loadAvg,
+		LoadMisc:            *loadMisc,
+	}
+
+	response := &CPUResponse{
+		ResponseCode:    http.StatusOK,
+		ResponseMessage: "OK",
+		Information:     *information,
+		Statistics:      *statistics,
+	}
+
+	json.NewEncoder(res).Encode(response)
 }
