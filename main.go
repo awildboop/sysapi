@@ -31,6 +31,6 @@ func main() {
 		http.ListenAndServe(fmt.Sprintf("%s:%s", config.Connection.Host, config.Connection.Port), r)
 	}()
 
-	fmt.Printf("Now listening at %s on port %s", config.Connection.Host, config.Connection.Port)
+	fmt.Printf("Now listening at %s on port %s\n", config.Connection.Host, config.Connection.Port)
 	wg.Wait()
 }

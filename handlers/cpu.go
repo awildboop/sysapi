@@ -33,12 +33,12 @@ type CPUResponse struct {
 	Statistics      CPUStatistics  // Statistics about the cpu
 }
 
-func CPUUsage(res http.ResponseWriter, req *http.Request) {
+func CPUHandler(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "application/json")
 
 	info, err := cpu.Info()
 	if err != nil {
-		res.WriteHeader(500)
+		res.WriteHeader(http.StatusInternalServerError)
 		response := struct {
 			ResponseCode    int
 			ResponseMessage string
@@ -64,7 +64,7 @@ func CPUUsage(res http.ResponseWriter, req *http.Request) {
 
 	cpuPercent, err := cpu.Percent(time.Second, false)
 	if err != nil {
-		res.WriteHeader(500)
+		res.WriteHeader(http.StatusInternalServerError)
 		response := struct {
 			ResponseCode    int
 			ResponseMessage string
@@ -77,7 +77,7 @@ func CPUUsage(res http.ResponseWriter, req *http.Request) {
 	}
 	loadAvg, err := load.Avg()
 	if err != nil {
-		res.WriteHeader(500)
+		res.WriteHeader(http.StatusInternalServerError)
 		response := struct {
 			ResponseCode    int
 			ResponseMessage string
@@ -90,7 +90,7 @@ func CPUUsage(res http.ResponseWriter, req *http.Request) {
 	}
 	loadMisc, err := load.Misc()
 	if err != nil {
-		res.WriteHeader(500)
+		res.WriteHeader(http.StatusInternalServerError)
 		response := struct {
 			ResponseCode    int
 			ResponseMessage string
@@ -115,5 +115,6 @@ func CPUUsage(res http.ResponseWriter, req *http.Request) {
 		Statistics:      *statistics,
 	}
 
+	res.WriteHeader(http.StatusOK)
 	json.NewEncoder(res).Encode(response)
 }
