@@ -83,7 +83,7 @@ func MemHandler(res http.ResponseWriter, req *http.Request) {
 
 	memResponse := &MemoryResponse{
 		ResponseCode:    http.StatusOK,
-		ResponseMessage: "OK",
+		ResponseMessage: "With the exception of percents, all units are in bytes.",
 		Swap:            *swapStats,
 		Memory:          *memStats,
 	}
